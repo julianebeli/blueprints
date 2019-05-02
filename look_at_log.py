@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 import re
+import json
 
 
 @dataclass
@@ -26,4 +27,13 @@ with open('the.log', 'r') as f:
             lines.append(eval(found[0]))
         # lines.append(line.strip())
 
-print(lines)
+
+jobs: dict = {}
+for entry in lines:
+    jobs[entry.checksum] = set()
+for entry in lines:
+    if entry.error:
+        jobs[entry.checksum].add(entry.error)
+
+print(jobs)
+# print(json.dumps(jobs, indent=4))
