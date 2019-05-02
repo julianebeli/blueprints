@@ -33,7 +33,8 @@ for entry in lines:
     jobs[entry.checksum] = set()
 for entry in lines:
     if entry.error:
-        jobs[entry.checksum].add(entry.error)
+        if entry.error != 'all courses already associated':
+            jobs[entry.checksum].add(entry.error)
 
 print(jobs)
 # print(json.dumps(jobs, indent=4))
