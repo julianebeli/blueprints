@@ -83,7 +83,8 @@ for row in rows[-2:]:
 
     if 'errors' in blueprint_course_data[0].keys():
         # course doesn't exist in Canvas
-        e.error = blueprint_course_data[0]['errors'][0]['message'] + ' - blueprint'
+        e.error = blueprint_course_data[0]['errors'][0]['message'] + \
+            ' - blueprint'
         entries.append(e)
         record(e)
         continue

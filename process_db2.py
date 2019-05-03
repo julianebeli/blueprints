@@ -6,7 +6,7 @@ from api.requestor import API
 from datetime import datetime
 import re
 from tests import get_course_id, get_hash, get_course
-from subaccount_info_reader import get_parents
+from subaccount_info_reader import get_parent, get_child
 
 course_id_stem = re.compile(r"/courses/(\d+)")
 course_id_number = re.compile(r"^(\d+)$")
@@ -35,9 +35,11 @@ jobs = []
 for row in rows:
     blueprint = list(set((filter(lambda x: x, (get_course_id(row.CourseID) +
                                                get_course_id(row.UseexistingBlueprintcourse))))))
-    associations = list(set(filter(lambda x: x, get_course_id(row.Coursestoassociate))))
+    associations = list(
+        set(filter(lambda x: x, get_course_id(row.Coursestoassociate))))
     # print('blueprint', blueprint, 'associations', associations)
-    jobs.append(dict(checksum=get_hash(row), blueprint=blueprint, associations=associations))
+    jobs.append(dict(checksum=get_hash(row),
+                     blueprint=blueprint, associations=associations))
     # if len(blueprint) > 1:
     #     print("too many blueprints")
     #     print(blueprint)
@@ -45,20 +47,58 @@ for row in rows:
 # print(jobs)
 
 
+def qualities(course_id):
+
+    course_data = get_course(course_id)
+
+    data = dict(course_id=course_id, error='')
+    if not course_data.response_error:
+        data['course_subaccount'] = course_data.results[0]['account_id']
+        data['is_blueprint'] = course_data.results[0]['blueprint']
+        data['student_count'] = course_data.results[0]['total_students']
+
+    else:
+        # print(course_data.results[0])
+        message = course_data.results[0]['errors'][0]['message']
+        if message == 'The specified resource does not exist.':
+            data['error'] = f"course {course_id} does not exist"
+        else:
+            data['error'] = message
+    return data
+
+
 def course_data(j):
-    blueprint_data = get_course(j['blueprint'][0])
-    print(blueprint_data.results[0].keys())
-    if not blueprint_data.response_error:
-        print(blueprint_data.results[0]['account_id'])
-        print(get_parents(blueprint_data.results[0]['account_id']))
-        print(blueprint_data.results[0]['blueprint'])
-    # print(json.dumps(blueprint_data, indent=4))
-    # association_data = list(map(get_course, j['associations']))
+
+    if not j['blueprint']:
+        blueprint_error = 'no blueprint course specified'
+        return dict(checksum=j['checksum'], error=blueprint_error)
+    else:
+        blueprint_course_id = j['blueprint'][0]
+
+    blueprint_qualities = qualities(blueprint_course_id)
+
+    association_data = list(map(qualities, j['associations']))
+
+    # [x.results[0]['account_id'],x.results[0]['blueprint'],x.results[0]['total_students']]
     # print(json.dumps(association_data, indent=4))
-    # return [blueprint_data, association_data]
+    # return [course_data, association_data]
+    return dict(checksum=j['checksum'], blueprint=blueprint_qualities, associations=association_data)
 
 
-print(list(map(course_data, jobs[:4])))
+error_list = list(map(course_data, jobs))
+for error in error_list:
+    print(error)
+
+    # checks to do:
+    # parent = get_parent(course_data.results[0]['account_id'])
+    # if parent:
+    #     error = f"move to parent subaccount {parent}"
+    # child = get_child(course_data.results[0]['account_id'])
+    # if is_blueprint:
+    #     error = "course is already a blueprint"
+    # if student_count != 0:
+    #     error = "blueprint has students"
+
 exit()
 # tests to do:
 #     blueprint len == 1
@@ -198,22 +238,22 @@ for row in rows:
 
 
 # make_blueprint_requests = [x for x in rows if x.CreatenewBlueprintcourse == 'Yes']
-# make_blueprint_data = []
+# make_course_data = []
 # for entry in make_blueprint_requests:
-#     make_blueprint_data.append(get_course_id(entry.CourseID))
+#     make_course_data.append(get_course_id(entry.CourseID))
 
-# print(make_blueprint_data)
+# print(make_course_data)
 
-# associate_blueprint_data = [[get_course_id(list(filter(lambda y: y, [x.CourseID,
+# associate_course_data = [[get_course_id(list(filter(lambda y: y, [x.CourseID,
 #                                                                      x.UseexistingBlueprintcourse]))[0]),
 #                              list(map(get_course_id, x.Coursestoassociate.split('\n')))]
 #                             for x in rows if x.Coursestoassociate]
-# print(associate_blueprint_data)
+# print(associate_course_data)
 
 
 # exit()
 # # https://tas.beta.instructure.com/courses/42852
-# make_blueprint_data = ['42852']
+# make_course_data = ['42852']
 
 
 # # recipe to associate courses to a blueprint
@@ -225,7 +265,7 @@ for row in rows:
 # # course_ids_to_add       Array   Courses to add as associated courses
 
 # methodname = 'update_associated_courses'
-# for entry in associate_blueprint_data:
+# for entry in associate_course_data:
 #     params = dict(methodname=methodname,
 #                   course_id=entry[0],
 #                   template_id='default',
