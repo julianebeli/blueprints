@@ -3,7 +3,7 @@ from subaccount_data import root_sub_account, info
 
 def get_parents(id):
 
-    ids = [id]
+    ids = []
     p = info[str(id)]["parent"]
     ids.append(p)
     while p != root_sub_account:

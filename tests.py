@@ -7,7 +7,7 @@ from pluck import pluck
 import json
 
 
-cache_time = 24 * 60 * 60 * 0
+cache_time = 24 * 60 * 60 * 1
 api = API('prod', cache=cache_time)
 course_id_stem = re.compile(r"/courses/(\d+)")
 course_id_number = re.compile(r"^(\d+)$")
@@ -69,7 +69,7 @@ def get_course(course_id):
     api.do()
     # print(f'API RESPONSE:\n{api.results}')
     # print(f'{"_" * 48}')
-    return api.results
+    return api
 
 
 def get_associated_course_information(course_id):
