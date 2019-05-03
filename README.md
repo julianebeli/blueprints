@@ -1,2 +1,2 @@
 # blueprints
-process requests for blueprint courses
+process requests for blueprint courses in Canvas
