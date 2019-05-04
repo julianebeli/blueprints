@@ -71,16 +71,19 @@ def qualities(course_id):
 def course_data(j):
 
     if not j['blueprint']:
-        blueprint_error = 'no blueprint course specified'
+        blueprint_error = ['no blueprint course specified']
         return dict(checksum=j['checksum'], error=blueprint_error)
     else:
         blueprint_course_id = j['blueprint'][0]
 
     blueprint_qualities = qualities(blueprint_course_id)
     if blueprint_qualities['error']:
-        return dict(checksum=j['checksum'], error=blueprint_qualities['error'])
+        return dict(checksum=j['checksum'], error=[blueprint_qualities['error']])
+    if blueprint_qualities['student_count'] != 0:
+        return dict(checksum=j['checksum'], error=[f"blueprint cannot have students [{blueprint_qualities['student_count']}]"])
     association_data = list(map(qualities, j['associations']))
-    assocaition_errors = list(filter(lambda x: x, map(lambda x: x['error'], association_data)))
+    assocaition_errors = list(
+        filter(lambda x: x, map(lambda x: x['error'], association_data)))
     if assocaition_errors:
         return dict(checksum=j['checksum'], error=assocaition_errors)
 
@@ -91,10 +94,10 @@ job_list = list(map(course_data, jobs))
 # print(job_list[0:10])
 undoable_jobs = []
 undoable_jobs.extend(list(filter(lambda x: 'error' in x.keys(), job_list)))
-print(undoable_jobs)
-
+print(json.dumps(undoable_jobs,indent=4))
+print(len(undoable_jobs))
 job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
-
+# print('*'*48)
 # for job in job_list:
 #     print(job)
 # print(job_list[0])

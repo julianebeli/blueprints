@@ -1,4 +1,3 @@
-
 errors = {'cdf060249ba5b14eb379033d1cd9708d': {'blueprint can not have students [1]'},
           'a6735fdc85c9b065df6e0f901aa423ba': {"The specified resource does not exist. - association [{'errors': [{'message': 'The specified resource does not exist.'}]}]", 'no course to associate to blueprint'},
           'b3bbb9bb32002515b4b2f12b6fb07cc5': {'no blueprint course in request'},
