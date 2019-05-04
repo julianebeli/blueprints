@@ -129,7 +129,7 @@ def create_blueprint(row):
         new_account_id = account_data[0]['parent_account_id']
     else:
         new_account_id = account_id
-    print( f'new account id {new_account_id}')
+    print(f'new account id {new_account_id}')
     # account_parent =
     # print(account_parent)
     print('moving course to parent subaccount')
@@ -147,7 +147,7 @@ def create_blueprint(row):
 
 def create_associations(blueprint, associations):
     print(f"creating associations with {blueprint}, {associations}")
-    
+
     methodname = 'update_associated_courses'
     params = dict(methodname=methodname,
                   course_id=blueprint,

@@ -14,7 +14,7 @@ course_id_number = re.compile(r"^(\d+)$")
 now = str(datetime.now())
 print(now)
 
-cache_time = 60*60*24
+cache_time = 60 * 60 * 24
 api = API(server='prod', cache=None)
 data = db_reader('data.db', 'requests')
 # print(data)
@@ -26,12 +26,9 @@ rows = [data.nt(*x) for x in data.connection.cursor.execute(data.sql_select)]
 
 jobs = []
 for row in rows:
-    blueprint = list(set((filter(lambda x: x, (get_course_id(row.CourseID) +
-                                               get_course_id(row.UseexistingBlueprintcourse))))))
-    associations = list(
-        set(filter(lambda x: x, get_course_id(row.Coursestoassociate))))
-    jobs.append(dict(checksum=get_hash(row),
-                     blueprint=blueprint, associations=associations))
+    blueprint = list(set(filter(lambda x: x, (get_course_id(row.CourseID) + get_course_id(row.UseexistingBlueprintcourse)))))
+    associations = list(set(filter(lambda x: x, get_course_id(row.Coursestoassociate))))
+    jobs.append(dict(checksum=get_hash(row), blueprint=blueprint, associations=associations))
 
 
 def qualities(course_id):
@@ -91,42 +88,40 @@ def course_data(j):
 
 
 job_list = list(map(course_data, jobs))
-# print(job_list[0:10])
 undoable_jobs = []
 undoable_jobs.extend(list(filter(lambda x: 'error' in x.keys(), job_list)))
-print(json.dumps(undoable_jobs,indent=4))
-print(len(undoable_jobs))
 job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
-# print('*'*48)
-# for job in job_list:
-#     print(job)
-# print(job_list[0])
-# for job in job_list:
-#     try:
-#         account = job['blueprint']['course_subaccount']
-#         blueprint_parent = get_parent(account)
-#         # print(account, blueprint_parent)
-#         if blueprint_parent:
-#             print("promoting this job")
-#             job['blueprint'].update(
-#                 dict(promote=True, parent_subaccount=blueprint_parent[0]))
-#             print(job)
 
-#     except:
-#         job.update(error=job['blueprint']['error'])
-# undoable_jobs.extend(list(filter(lambda x: 'error' in x.keys(), job_list)))
-# print(undoable_jobs)
-# job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
-# print(len(job_list))
+# test that the associations are in the right sub account (same or child of blueprint)
+for job in job_list:
+    blueprint_accounts = job['blueprint']['accounts']
+    valid_accounts = set(filter(lambda x: type(x) is int, blueprint_accounts.values()))
+    association_accounts = set(map(lambda x: x['accounts']['account'], job['associations']))
+    if not association_accounts.issubset(valid_accounts):
+        job.update(dict(error=['association courses are not in the right subaccount']))
+undoable_jobs.extend(list(filter(lambda x: 'error' in x.keys(), job_list)))
+job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
 
-# checks to do:
-# parent = get_parent(course_data.results[0]['account_id'])
-# if parent:
-#     error = f"move to parent subaccount {parent}"
-# child = get_child(course_data.results[0]['account_id'])
-# if is_blueprint:
-#     error = "course is already a blueprint"
-# if student_count != 0:
-#     error = "blueprint has students"
+# test that no blueprint is being associate to a blueprint
+for job in job_list:
+    # association_blueprints = list(map(lambda x: x['is_blueprint'], job['associations']))
+    association_blueprints = [x['is_blueprint'] for x in job['associations'] if x['is_blueprint']]
+    if association_blueprints:
+        job.update(dict(error=['association courses contain a blueprint course']))
+
+undoable_jobs.extend(list(filter(lambda x: 'error' in x.keys(), job_list)))
+job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
+
+
+for job in undoable_jobs:
+    print(job['checksum'], job['error'])
+print(len(undoable_jobs))
+
+# job_list has no errors now
+for job in job_list[:5]:
+    print(job)
+    create_blueprint(job)
+    associate_courses(job)
+
 
 exit()
