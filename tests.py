@@ -8,7 +8,7 @@ import json
 
 
 cache_time = 24 * 60 * 60 * 1
-api = API('prod', cache=cache_time)
+api = API('beta', cache=cache_time)
 course_id_stem = re.compile(r"/courses/(\d+)")
 course_id_number = re.compile(r"^(\d+)$")
 
@@ -61,7 +61,7 @@ def association_ids(row):
 
 
 def get_course(course_id):
-    print(f'course data for {course_id}')
+    # print(f'course data for {course_id}')
     # get course data or get error
     methodname = 'get_single_course_courses'
     params = {'methodname': methodname, 'id': course_id, 'include': 'total_students'}
@@ -93,6 +93,84 @@ def get_subaccounts(account):
         accounts.extend([subaccount['id'], subaccount['parent_account_id']])
 
     return set(accounts)
+
+
+def correct_subaccount(job):
+    blueprint_accounts = job['blueprint']['accounts']
+    valid_accounts = set(filter(lambda x: type(x) is int, blueprint_accounts.values()))
+    association_accounts = set(map(lambda x: x['accounts']['account'], job['associations']))
+    if not association_accounts.issubset(valid_accounts):
+        job.update(dict(error=['association courses are not in the right subaccount']))
+    return job
+
+
+def valid_associations(job):
+    association_blueprints = [x['is_blueprint'] for x in job['associations'] if x['is_blueprint']]
+    if association_blueprints:
+        job.update(dict(error=['association courses contain a blueprint course']))
+    return job
+
+
+def create_blueprint2(job):
+    # 'blueprint': {'course_id': '43450', 'error': '', 'is_blueprint': True, 'student_count': 0, 'accounts': {'account': 366, 'child': 367, 'parent': '', 'promote': False}}
+
+    # options: make blueprint, promote
+
+    params = {
+        'methodname': "update_course",
+        'id': job['blueprint']['course_id']
+    }
+    if not job['blueprint']['is_blueprint']:
+        params.update({"course[blueprint]": True})
+
+    if job['blueprint']['accounts']['promote']:
+        params.update({"course[account_id]": job['blueprint']['accounts']['parent']})
+
+    pk = params.keys()
+
+    if ("course[account_id]" in pk) or ("course[blueprint]" in pk):
+
+        api.add_method(**params)
+        api.do()
+        job.update(dict(error=['Blueprint course created']))
+    else:
+        job.update(dict(error=['The blueprint course already exists']))
+
+    return job
+
+
+def create_associations2(job):
+    # print(f"creating associations with {blueprint}, {associations}")
+    current_error = job['error']
+
+    blueprint = job['blueprint']['course_id']
+    associations = list(map(lambda x: x['course_id'], job['associations']))
+    if associations:
+        params = dict(methodname='update_associated_courses',
+                      course_id=blueprint,
+                      template_id='default',
+                      course_ids_to_add=associations
+                      )
+        # print(params)
+        api.add_method(**params)
+        api.do()
+
+        # force sync
+        methodname = 'begin_migration_to_push_to_associated_courses'
+        params = dict(methodname=methodname,
+                      course_id=blueprint,
+                      template_id='default')
+        # print(params)
+        api.add_method(**params)
+        api.do()
+
+        current_error.append('associations complete')
+        job['error'] = current_error
+    else:
+        current_error.append('nothing to associate')
+        job['error'] = current_error
+
+    return job
 
 
 def create_blueprint(row):

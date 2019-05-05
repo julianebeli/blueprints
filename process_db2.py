@@ -2,24 +2,19 @@ import __init__
 import hashlib
 import json
 from db_reader import db_reader
-from api.requestor import API
+from api.requestor2 import API
 from datetime import datetime
 import re
-from tests import get_course_id, get_hash, get_course
+from tests import get_course_id, get_hash, get_course, create_blueprint2, create_associations2, valid_associations, correct_subaccount
 from subaccount_info_reader import get_parent, get_child
 
-course_id_stem = re.compile(r"/courses/(\d+)")
-course_id_number = re.compile(r"^(\d+)$")
-
-now = str(datetime.now())
-print(now)
 
 cache_time = 60 * 60 * 24
 api = API(server='prod', cache=None)
 data = db_reader('data.db', 'requests')
 # print(data)
 
-rows = [data.nt(*x) for x in data.connection.cursor.execute(data.sql_select)]
+rows = [data.nt(*x) for x in data.connection.cursor.execute(data.sql_select)][:10]
 # rows = [x for x in rows if not x.Completed]
 # print(len(rows))
 
@@ -34,8 +29,8 @@ for row in rows:
 def qualities(course_id):
 
     course_data = get_course(course_id)
-
     data = dict(course_id=course_id, error='')
+
     if not course_data.response_error:
         account = course_data.results[0]['account_id']
         data['is_blueprint'] = course_data.results[0]['blueprint']
@@ -88,26 +83,21 @@ def course_data(j):
 
 
 job_list = list(map(course_data, jobs))
+
 undoable_jobs = []
+
 undoable_jobs.extend(list(filter(lambda x: 'error' in x.keys(), job_list)))
 job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
 
 # test that the associations are in the right sub account (same or child of blueprint)
-for job in job_list:
-    blueprint_accounts = job['blueprint']['accounts']
-    valid_accounts = set(filter(lambda x: type(x) is int, blueprint_accounts.values()))
-    association_accounts = set(map(lambda x: x['accounts']['account'], job['associations']))
-    if not association_accounts.issubset(valid_accounts):
-        job.update(dict(error=['association courses are not in the right subaccount']))
+job_list = list(map(correct_subaccount, job_list))
+
+
 undoable_jobs.extend(list(filter(lambda x: 'error' in x.keys(), job_list)))
 job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
 
 # test that no blueprint is being associate to a blueprint
-for job in job_list:
-    # association_blueprints = list(map(lambda x: x['is_blueprint'], job['associations']))
-    association_blueprints = [x['is_blueprint'] for x in job['associations'] if x['is_blueprint']]
-    if association_blueprints:
-        job.update(dict(error=['association courses contain a blueprint course']))
+job_list = list(map(valid_associations, job_list))
 
 undoable_jobs.extend(list(filter(lambda x: 'error' in x.keys(), job_list)))
 job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
@@ -118,10 +108,12 @@ for job in undoable_jobs:
 print(len(undoable_jobs))
 
 # job_list has no errors now
-for job in job_list[:5]:
-    print(job)
-    create_blueprint(job)
-    associate_courses(job)
+# create blueprints
+job_list = list(map(create_blueprint2, job_list))
+# associate courses
+job_list = list(map(create_associations2, job_list))
+
+print(json.dumps(job_list, indent=4))
 
 
 exit()
