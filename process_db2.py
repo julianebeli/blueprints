@@ -19,11 +19,11 @@ rows = [data.nt(*x) for x in data.connection.cursor.execute(data.sql_select)][:1
 # print(len(rows))
 
 
-jobs = []
+courses = []
 for row in rows:
     blueprint = list(set(filter(lambda x: x, (get_course_id(row.CourseID) + get_course_id(row.UseexistingBlueprintcourse)))))
     associations = list(set(filter(lambda x: x, get_course_id(row.Coursestoassociate))))
-    jobs.append(dict(checksum=get_hash(row), blueprint=blueprint, associations=associations))
+    courses.append(dict(checksum=get_hash(row), blueprint=blueprint, associations=associations))
 
 
 def qualities(course_id):
@@ -82,7 +82,7 @@ def course_data(j):
     return dict(checksum=j['checksum'], blueprint=blueprint_qualities, associations=association_data)
 
 
-job_list = list(map(course_data, jobs))
+job_list = list(map(course_data, courses))
 
 undoable_jobs = []
 
