@@ -19,7 +19,6 @@ def get_hash(r):
     s = []
     for e in row:
         s.append(''.join(e))
-
     m.update(''.join(s).encode())
     chksum = m.hexdigest()
     # print(chksum)
@@ -115,21 +114,20 @@ def create_blueprint2(job):
     # 'blueprint': {'course_id': '43450', 'error': '', 'is_blueprint': True, 'student_count': 0, 'accounts': {'account': 366, 'child': 367, 'parent': '', 'promote': False}}
 
     # options: make blueprint, promote
-
+    work_to_do = False
     params = {
         'methodname': "update_course",
         'id': job['blueprint']['course_id']
     }
     if not job['blueprint']['is_blueprint']:
         params.update({"course[blueprint]": True})
+        work_to_do = True
 
     if job['blueprint']['accounts']['promote']:
         params.update({"course[account_id]": job['blueprint']['accounts']['parent']})
+        work_to_do = True
 
-    pk = params.keys()
-
-    if ("course[account_id]" in pk) or ("course[blueprint]" in pk):
-
+    if work_to_do:
         api.add_method(**params)
         api.do()
         job.update(dict(error=['Blueprint course created']))
@@ -146,6 +144,7 @@ def create_associations2(job):
     blueprint = job['blueprint']['course_id']
     associations = list(map(lambda x: x['course_id'], job['associations']))
     if associations:
+        # could look for already associated but ultimately this is another api call
         params = dict(methodname='update_associated_courses',
                       course_id=blueprint,
                       template_id='default',
@@ -154,6 +153,7 @@ def create_associations2(job):
         # print(params)
         api.add_method(**params)
         api.do()
+        # print('api results', api.results)
 
         # force sync
         methodname = 'begin_migration_to_push_to_associated_courses'
@@ -163,6 +163,7 @@ def create_associations2(job):
         # print(params)
         api.add_method(**params)
         api.do()
+        # print('api results', api.results)
 
         current_error.append('associations complete')
         job['error'] = current_error
