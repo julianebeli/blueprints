@@ -9,7 +9,7 @@ from datetime import datetime
 import re
 from tests import get_course_id, get_hash, get_course, create_blueprint2, create_associations2, valid_associations, correct_subaccount
 from subaccount_info_reader import get_parent, get_child
-from source_data import get_data
+from source_data import get_data, write_data
 
 
 cache_time = 60 * 60 * 24
@@ -26,7 +26,7 @@ rows = get_data(datafile)[:10]
 
 courses = []
 for row in rows:
-    who = dict(date=row.Starttime, name=row.Name, email=row.Email, school=row.School)
+    who = dict(date=row.Starttime, name=row.Name, email=row.Email, school=row.School, create_blueprint=row.CourseID, use_blueprint=row.UseexistingBlueprintcourse, associations=row.Coursestoassociate)
     blueprint = list(set(filter(lambda x: x, (get_course_id(row.CourseID) +
                                               get_course_id(row.UseexistingBlueprintcourse)))))
     associations = list(set(filter(lambda x: x, get_course_id(row.Coursestoassociate))))
@@ -137,8 +137,9 @@ job_list = list(map(create_associations2, job_list))
 # job_list = list(filter(lambda x: 'error' not in x.keys(), job_list))
 print(json.dumps(job_list, indent=4))
 for job in processed_jobs:
-    # print(job['checksum'], job['error'], job['who'])
-    print(job)
+    print(job['checksum'], job['error'], job['who']['name'])
+    # print(job)
 print(len(processed_jobs))
-
+print(json.dumps(processed_jobs[9], indent=4))
+write_data(processed_jobs[8:])
 exit()
