@@ -32,19 +32,25 @@ def write_data(data):
     headers = ['date', 'name', 'email', 'school', 'create_blueprint',
                'use_blueprint', 'associations', 'checksum', 'computed_blueprint', 'computed_associations', 'message']
     for i, j in enumerate(headers):
-        ws.cell(row=1, column=i+1, value=j)
+        ws.cell(row=1, column=i + 1, value=j)
 
     row_count = 1
     for row in data:
-        print(row)
+        # print(row)
         this_row = row['who']
-        blueprint = row['blueprint']['course_id']
-        associations = ",".join(list(map(lambda x: x['course_id'], row['associations'])))
-        this_row.update(dict(checksum=row['checksum'], computed_blueprint=blueprint, computed_associations=associations,  message=",".join(row['error'])))
+        try:
+            blueprint = row['blueprint']['course_id']
+        except KeyError:
+            blueprint = ''
+        try:
+            associations = ",".join(list(map(lambda x: x['course_id'], row['associations'])))
+        except KeyError:
+            associations = ''
+        this_row.update(dict(checksum=row['checksum'], computed_blueprint=blueprint, computed_associations=associations, message=",".join(row['error'])))
         row_count += 1
         for i, j in enumerate(this_row.values()):
-            print((row_count, i+1, j))
-            ws.cell(row=row_count, column=i+1, value=j)
+            # print((row_count, i + 1, j))
+            ws.cell(row=row_count, column=i + 1, value=j)
 
     wb.save(filename=filename)
 

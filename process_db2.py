@@ -21,7 +21,7 @@ api = API(server='beta', cache=None)
 # rows = [x for x in rows if not x.Completed]
 
 datafile = Path(here) / 'raw_data' / 'Blueprint Course Management 1 (14).xlsx'
-rows = get_data(datafile)[:10]
+rows = get_data(datafile)
 # print(rows)
 
 courses = []
@@ -141,5 +141,5 @@ for job in processed_jobs:
     # print(job)
 print(len(processed_jobs))
 print(json.dumps(processed_jobs[9], indent=4))
-write_data(processed_jobs[8:])
+write_data(processed_jobs)
 exit()
