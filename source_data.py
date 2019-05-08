@@ -2,6 +2,13 @@
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from collections import namedtuple
+import datetime
+
+
+def get_value(d):
+    if type(d) == datetime.datetime:
+        return str(d)
+    return d
 
 
 def get_data(filename):
@@ -9,7 +16,8 @@ def get_data(filename):
     raw_data = []
 
     for row in wb['Form1']:
-        r = [str(x.value) for x in row]
+        # print([type(x.value) for x in row])
+        r = [get_value(x.value) for x in row]
         raw_data.append(r)
 
     headers = list(map(lambda x: x.replace(" ", ""), raw_data[0]))
@@ -46,7 +54,8 @@ def write_data(data):
             associations = ",".join(list(map(lambda x: x['course_id'], row['associations'])))
         except KeyError:
             associations = ''
-        this_row.update(dict(checksum=row['checksum'], computed_blueprint=blueprint, computed_associations=associations, message=",".join(row['error'])))
+        this_row.update(dict(checksum=row['checksum'], computed_blueprint=blueprint,
+                             computed_associations=associations, message=",".join(row['error'])))
         row_count += 1
         for i, j in enumerate(this_row.values()):
             # print((row_count, i + 1, j))
