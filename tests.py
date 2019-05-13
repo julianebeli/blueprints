@@ -8,7 +8,7 @@ import json
 
 
 cache_time = 24 * 60 * 60 * 1
-api = API('beta', cache=cache_time)
+api = API('prod', cache= cache_time)
 course_id_stem = re.compile(r"/courses/(\d+)")
 course_id_number = re.compile(r"^(\d+)$")
 
@@ -64,7 +64,7 @@ def get_course(course_id):
     # print(f'course data for {course_id}')
     # get course data or get error
     methodname = 'get_single_course_courses'
-    params = {'methodname': methodname, 'id': course_id, 'include': 'total_students'}
+    params = {'methodname': methodname, 'id': course_id, 'include': ['total_students']}
     api.add_method(**params)
     api.do()
     # print(f'API RESPONSE:\n{api.results}')

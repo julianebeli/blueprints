@@ -61,8 +61,11 @@ def organise_jobs(processed_jobs, job_list):
     return [processed_jobs, job_list]
 
 
-datafile = Path(here) / 'raw_data' / 'Blueprint Course Management 1 (14).xlsx'
+datafile = Path(here) / 'raw_data' / 'Blueprint Course Management 1 (16).xlsx'
 rows = get_data(datafile)
+rows = list(filter(lambda x: not x.Completed, rows))
+print(rows)
+print(len(rows))
 
 
 courses = []
@@ -101,8 +104,11 @@ job_list = list(map(create_associations2, job_list))
 
 [processed_jobs, job_list] = organise_jobs(processed_jobs, job_list)
 
-print(len(processed_jobs))
+# for job in processed_jobs:
+#     print(job['error'])
 
+print(len(processed_jobs))
+# exit()
 list(map(make_msg, processed_jobs))
 exit()
 # print(json.dumps(processed_jobs[9], indent=4))
