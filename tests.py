@@ -154,8 +154,8 @@ def create_blueprint2(job):
         work_to_do = True
 
     if work_to_do:
-        # api.add_method(**params)
-        # api.do()
+        api.add_method(**params)
+        api.do()
         job.update(dict(error=['Blueprint course created']))
     else:
         job.update(dict(error=['The blueprint course already exists']))
@@ -177,8 +177,8 @@ def create_associations2(job):
                       course_ids_to_add=associations
                       )
         # print(params)
-        # api.add_method(**params)
-        # api.do()
+        api.add_method(**params)
+        api.do()
         # print('api results', api.results)
 
         # force sync
@@ -187,8 +187,8 @@ def create_associations2(job):
                       course_id=blueprint,
                       template_id='default')
         # print(params)
-        # api.add_method(**params)
-        # api.do()
+        api.add_method(**params)
+        api.do()
         # print('api results', api.results)
 
         current_error.append('associations complete')

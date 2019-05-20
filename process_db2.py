@@ -61,7 +61,7 @@ def organise_jobs(processed_jobs, job_list):
     return [processed_jobs, job_list]
 
 
-datafile = Path(here) / 'raw_data' / 'Blueprint Course Management 1 (16).xlsx'
+datafile = Path(here) / 'raw_data' / 'Blueprint Course Management 1 (17).xlsx'
 rows = get_data(datafile)
 rows = list(filter(lambda x: not x.Completed, rows))
 print(rows)
