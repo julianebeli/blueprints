@@ -1,3 +1,6 @@
+from mail import make_msg
+from source_data import get_data, write_data
+from subaccount_info_reader import get_parent, get_child
 import __init__
 from __init__ import here
 import hashlib
@@ -5,10 +8,10 @@ import json
 from pathlib import Path
 from datetime import datetime
 import re
-from tests import get_course_id, get_hash, get_course, create_blueprint2, create_associations2, valid_associations, correct_subaccount, find_errors
-from subaccount_info_reader import get_parent, get_child
-from source_data import get_data, write_data
-from mail import make_msg
+from tests import get_course_id, get_hash, get_course, create_blueprint,
+create_associations, valid_associations, correct_subaccount, find_errors
+
+DATA_FILE = 'Blueprint Course Management 1 (18).xlsx'
 
 
 def qualities(course_id):
@@ -24,13 +27,15 @@ def qualities(course_id):
             return None
 
     if not course_id:
-        data = dict(course_id=None, error='No course specified', is_blueprint=False, student_count=0, accounts={})
+        data = dict(course_id=None, error='No course specified',
+                    is_blueprint=False, student_count=0, accounts={})
 
     else:
         course_data = get_course(course_id)
         error = get_error(course_data)
 
-        data = dict(course_id=course_id, error=error, is_blueprint=False, student_count=0, accounts={})
+        data = dict(course_id=course_id, error=error,
+                    is_blueprint=False, student_count=0, accounts={})
 
         if not course_data.response_error:
             account = course_data.results[0]['account_id']
@@ -61,7 +66,7 @@ def organise_jobs(processed_jobs, job_list):
     return [processed_jobs, job_list]
 
 
-datafile = Path(here) / 'raw_data' / 'Blueprint Course Management 1 (17).xlsx'
+datafile = Path(here) / 'raw_data' / DATA_FILE
 rows = get_data(datafile)
 rows = list(filter(lambda x: not x.Completed, rows))
 print(rows)
