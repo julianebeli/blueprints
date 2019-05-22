@@ -8,8 +8,8 @@ import json
 from pathlib import Path
 from datetime import datetime
 import re
-from tests import get_course_id, get_hash, get_course, create_blueprint,
-create_associations, valid_associations, correct_subaccount, find_errors
+from tests import get_course_id, get_hash, get_course, create_blueprint
+from tests import create_associations, valid_associations, correct_subaccount, find_errors
 
 DATA_FILE = 'Blueprint Course Management 1 (18).xlsx'
 
@@ -103,9 +103,9 @@ job_list = list(map(valid_associations, job_list))
 
 # job_list has no errors now
 # create blueprints
-job_list = list(map(create_blueprint2, job_list))
+job_list = list(map(create_blueprint, job_list))
 # associate courses
-job_list = list(map(create_associations2, job_list))
+job_list = list(map(create_associations, job_list))
 
 [processed_jobs, job_list] = organise_jobs(processed_jobs, job_list)
 
