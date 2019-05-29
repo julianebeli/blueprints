@@ -11,7 +11,7 @@ import re
 from tests import get_course_id, get_hash, get_course, create_blueprint
 from tests import create_associations, valid_associations, correct_subaccount, find_errors
 
-DATA_FILE = 'Blueprint Course Management 1 (18).xlsx'
+DATA_FILE = 'Blueprint Course Management 1.xlsx'
 
 
 def qualities(course_id):
