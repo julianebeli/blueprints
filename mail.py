@@ -67,8 +67,12 @@ def make_msg(job):
         else:
             assoc_msg = f"The associations you specified were\n{arequest}\nThis was interpreted as course id(s): {association_courses}"
 
-    message = f"""Hi {job['who']['name']} ({email_to}),
-On {job['who']['date'].split(' ')[0]} we processed a request from you.
+    mail_name = job['who']['name']
+    mail_date = job['who']['date'].split(' ')[0]
+    job_result = ", ".join(list(map(lambda x: x.capitalize(), job['error'])))
+
+    message = f"""Hi {mail_name} ({email_to}),
+On {mail_date} we processed a request from you.
 {blueprint_script}
 
 The blueprint you specified was: {blueprint_request}
@@ -77,10 +81,9 @@ This was interpreted as course id: {blueprint_course}
 {assoc_msg}
 
 The processing result was:
-{", ".join(list(map(lambda x: x.capitalize(),job['error'])))}
+{job_result}
 
 """
-
 
     msg.set_content(message)
 

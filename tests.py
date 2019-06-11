@@ -8,7 +8,7 @@ import json
 
 
 cache_time = 24 * 60 * 60 * 1
-api = API('prod', cache= cache_time)
+api = API('prod')
 course_id_stem = re.compile(r"/courses/(\d+)")
 course_id_number = re.compile(r"^(\d+)$")
 
